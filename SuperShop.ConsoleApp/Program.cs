@@ -64,6 +64,7 @@ void MainMenu()
         Console.WriteLine("3. Orders");
         Console.WriteLine("4. Suppliers & Restock");
         Console.WriteLine("5. Employees (Admin only)");
+        Console.WriteLine("6. Reports");
         Console.WriteLine("X. Exit");
         Console.Write("Choose: ");
 
@@ -77,6 +78,7 @@ void MainMenu()
             case "3": OrderMenu(); break;
             case "4": SupplierMenu(); break;
             case "5": EmployeeMenu(); break;
+            case "6": ReportsMenu(); break;
             case "X": return;
             default: Console.WriteLine("Invalid choice."); break;
         }
@@ -455,3 +457,73 @@ void Login()
     currentUser = user;
     Console.WriteLine($"✅ Logged in as {currentUser.Username} ({currentUser.Role})");
 }
+
+void ReportsMenu()
+{
+    Console.WriteLine("\n--- Reports ---");
+    Console.WriteLine("1. Daily Sales Summary");
+    Console.WriteLine("2. Best-selling Products");
+    Console.WriteLine("3. Low-stock Alerts");
+    Console.WriteLine("0. Back");
+    Console.Write("Choose: ");
+
+    var key = Console.ReadLine();
+
+    switch (key)
+    {
+        case "1": DailySalesSummary(); break;
+        case "2": BestSellingProducts(); break;
+        case "3": LowStockAlerts(); break;
+        case "0": return;
+        default: Console.WriteLine("Invalid choice."); break;
+    }
+}
+
+void DailySalesSummary()
+{
+    Console.Write("Enter date (yyyy-MM-dd) or blank for today: ");
+    var input = Console.ReadLine();
+    var date = string.IsNullOrWhiteSpace(input) ? DateTime.Today : DateTime.Parse(input);
+
+    var ordersOnDate = orders.GetAll()
+        .Where(o => o.OrderDate.Date == date.Date && !o.IsCancelled);
+
+    decimal total = ordersOnDate.Sum(o => o.TotalAmount);
+    int count = ordersOnDate.Count();
+
+    Console.WriteLine($"\n📅 Sales Summary for {date:yyyy-MM-dd}");
+    Console.WriteLine($"Total Orders: {count}");
+    Console.WriteLine($"Total Sales: {total:C}");
+}
+
+void BestSellingProducts()
+{
+    var productSales = new Dictionary<int, int>(); // ProductId => total quantity sold
+
+    foreach (var o in orders.GetAll().Where(x => !x.IsCancelled))
+        foreach (var it in o.Items)
+        {
+            if (!productSales.ContainsKey(it.ProductId)) productSales[it.ProductId] = 0;
+            productSales[it.ProductId] += it.Quantity;
+        }
+
+
+    var sorted = productSales.OrderByDescending(p => p.Value).Take(10);
+
+    Console.WriteLine("\n🏆 Best-selling Products:");
+    foreach (var kv in sorted)
+    {
+        var p = products.GetById(kv.Key);
+        Console.WriteLine($"{p?.Name ?? "Unknown"} - Sold Qty: {kv.Value}");
+    }
+}
+
+void LowStockAlerts(int threshold = 10)
+{
+    var lowStock = products.GetAll().Where(p => p.StockQuantity <= threshold);
+
+    Console.WriteLine($"\n⚠️ Products with stock <= {threshold}:");
+    foreach (var p in lowStock)
+        Console.WriteLine($"{p.Id}. {p.Name} - Stock: {p.StockQuantity}");
+}
+
