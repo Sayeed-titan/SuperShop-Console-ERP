@@ -34,5 +34,5 @@ It provides a fully functional **CRUD system** for managing **customers, product
 
 1. **Clone the repository:**
 ```bash
-git clone [https://github.com/YourUsername/SuperShop.git](https://github.com/Sayeed-titan/SuperShop-Console-ERP.git)
+git clone https://github.com/YourUsername/SuperShop.git](https://github.com/Sayeed-titan/SuperShop-Console-ERP.git
 cd SuperShop
