@@ -1,46 +1,38 @@
-Project Description
+# SuperShop Console ERP & POS System
 
-SuperShop Console ERP & POS System is a C# .NET 6 console application designed to simulate a small retail shop management system. It provides a fully functional CRUD system for managing customers, products, orders, suppliers, stock, and employees with role-based access control. The application includes a POS-style receipt printing system, mimicking the output of a real cash register.
+![C#](https://img.shields.io/badge/Language-C%23-blue)
+![.NET](https://img.shields.io/badge/.NET-6.0-brightgreen)
 
-The system uses JSON files for persistent storage, ensuring that all data (orders, customers, stock levels, and employees) are saved and loaded automatically between application runs.
+**SuperShop Console ERP & POS System** is a C# .NET 6 console application simulating a small retail shop.  
+It provides a fully functional **CRUD system** for managing **customers, products, orders, suppliers, stock, and employees**, with **role-based access control** and a **POS-style receipt printing system**.
 
-It is intended as a learning project for mastering C# object-oriented programming, generic services, dependency injection, and console-based user interfaces, while also demonstrating a simple ERP and POS workflow.
+---
 
-Features
-Core Features
+## Features
 
-Customer Management: Add, update, delete, and list customers.
+### Core Features
+- **Customer Management:** Add, update, delete, and list customers.
+- **Product Management:** CRUD operations, stock tracking, low-stock alerts.
+- **Order Management:** Create and cancel orders; stock updates automatically.
+- **POS Receipt:** Prints a formatted POS-style voucher for each order.
+- **Supplier & Restock:** CRUD for suppliers and receive stock with receipts.
+- **Employee & Role Management:** Admin, Sales, and Inventory roles with access control.
+- **Reports:**
+  - Daily sales summary
+  - Best-selling products
+  - Low-stock alerts
 
-Product Management: CRUD operations, stock tracking, and low-stock alerts.
+### Technical Features
+- **Persistent Storage:** `ICrudService<T>` + `JsonStore` saves data to JSON files.
+- **Dependency Injection** for modular service management.
+- **Role-based Access Control:** Admin (full access), Sales (create orders), Inventory (update stock).
+- **Console-based Menu System** with nested menus for all operations.
 
-Order Management: Create and cancel orders; automatically updates stock.
+---
 
-POS Receipt: Prints a formatted POS-style voucher for each order.
+## Setup Instructions
 
-Supplier & Restock: CRUD for suppliers and receive stock with receipts.
-
-Employee & Role Management: Admin, Sales, and Inventory roles with access control.
-
-Reports:
-
-Daily sales summary
-
-Best-selling products
-
-Low-stock alerts
-
-Technical Features
-
-Persistent Storage via ICrudService<T> and JsonStore.
-
-Dependency Injection for service management.
-
-Role-based Access Control:
-
-Admin: Full access
-
-Sales: Create orders
-
-Inventory: Update stock
-
-Console-based Menu System with nested menus for all operations.
+1. **Clone the repository:**
+```bash
+git clone https://github.com/YourUsername/SuperShop.git
+cd SuperShop
