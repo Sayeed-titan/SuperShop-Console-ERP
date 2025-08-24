@@ -2,6 +2,7 @@
 using SuperShop.Application.Interfaces;
 using SuperShop.Domain.Domain;
 using SuperShop.Domain.Entities;
+using SuperShop.Domain.Interfaces;
 using SuperShop.Infrastructure.Repositories;
 using SuperShop.Infrastructure.Services;
 
@@ -22,6 +23,8 @@ var products = provider.GetRequiredService<ICrudService<Product>>();
 var orders = provider.GetRequiredService<IOrderService>();
 var suppliers = provider.GetRequiredService<ICrudService<Supplier>>();
 var receipts = provider.GetRequiredService<ICrudService<StockReceipt>>();
+var employees = provider.GetRequiredService<ICrudService<Employee>>();
+
 
 // Seed items 
 if (products.Count() == 0)
@@ -34,6 +37,19 @@ if (customers.Count() == 0)
     customers.Add(new Customer { Name = "Rahim", Phone = "017...", Email = "rahim@example.com" });
     customers.Add(new Customer { Name = "Karim", Phone = "018...", Email = "karim@example.com" });
 }
+if (employees.Count() == 0)
+{
+    employees.Add(new Employee
+    {
+        Username = "admin",
+        Password = "admin123",
+        Role = Role.Admin
+    });
+    Console.WriteLine("✅ Admin user created: username=admin, password=admin123");
+}
+
+Employee? currentUser = null;
+
 
 MainMenu();
 
@@ -42,24 +58,30 @@ void MainMenu()
     while (true)
     {
         Console.WriteLine("\n=== SuperShop Console ERP ===");
+        Console.WriteLine("0. Login");
         Console.WriteLine("1. Customers");
         Console.WriteLine("2. Products");
         Console.WriteLine("3. Orders");
         Console.WriteLine("4. Suppliers & Restock");
-        Console.WriteLine("0. Exit");
+        Console.WriteLine("5. Employees (Admin only)");
+        Console.WriteLine("X. Exit");
         Console.Write("Choose: ");
-        var key = Console.ReadLine();
+
+        var key = Console.ReadLine()?.ToUpper();
 
         switch (key)
         {
+            case "0": Login(); break;       
             case "1": CustomerMenu(); break;
             case "2": ProductMenu(); break;
             case "3": OrderMenu(); break;
             case "4": SupplierMenu(); break;
-            case "0": return;
+            case "5": EmployeeMenu(); break;
+            case "X": return;
             default: Console.WriteLine("Invalid choice."); break;
         }
     }
+
 }
 
 void CustomerMenu()
@@ -297,6 +319,70 @@ void SupplierMenu()
     }
 }
 
+void EmployeeMenu()
+{
+    if (currentUser?.Role != Role.Admin)
+    {
+        Console.WriteLine("❌ Only Admin can manage employees.");
+        return;
+    }
+
+    while (true)
+    {
+        Console.WriteLine("\n--- Employees ---");
+        Console.WriteLine("1. List Employees");
+        Console.WriteLine("2. Add Employee");
+        Console.WriteLine("3. Update Employee");
+        Console.WriteLine("4. Delete Employee");
+        Console.WriteLine("0. Back");
+        Console.Write("Choose: ");
+        var key = Console.ReadLine();
+
+        switch (key)
+        {
+            case "1":
+                foreach (var e in employees.GetAll())
+                    Console.WriteLine($"{e.Id}. {e.Username} | Role: {e.Role}");
+                break;
+            case "2":
+                Console.Write("Username: "); var un = Console.ReadLine() ?? "";
+                Console.Write("Password: "); var pw = Console.ReadLine() ?? "";
+                Console.WriteLine("Roles: 0=Admin, 1=Sales, 2=Inventory");
+                Console.Write("Role: ");
+                if (!int.TryParse(Console.ReadLine(), out var r) || r < 0 || r > 2) { Console.WriteLine("Invalid role."); break; }
+
+                var enew = employees.Add(new Employee { Username = un, Password = pw, Role = (Role)r });
+                Console.WriteLine($"Added Employee #{enew.Id}");
+                break;
+            case "3":
+                Console.Write("Id to update: ");
+                if (!int.TryParse(Console.ReadLine(), out var uid)) break;
+
+                var eUpd = employees.GetById(uid);
+                if (eUpd == null) { Console.WriteLine("Not found."); break; }
+
+                Console.Write($"Username ({eUpd.Username}): "); var nu = Console.ReadLine();
+                Console.Write($"Password ({eUpd.Password}): "); var npw = Console.ReadLine();
+                Console.WriteLine("Roles: 0=Admin, 1=Sales, 2=Inventory");
+                Console.Write($"Role ({(int)eUpd.Role}): "); var nr = Console.ReadLine();
+
+                if (!string.IsNullOrWhiteSpace(nu)) eUpd.Username = nu;
+                if (!string.IsNullOrWhiteSpace(npw)) eUpd.Password = npw;
+                if (int.TryParse(nr, out var role) && role >= 0 && role <= 2) eUpd.Role = (Role)role;
+
+                Console.WriteLine(employees.Update(eUpd) ? "Updated." : "Failed.");
+                break;
+            case "4":
+                Console.Write("Id to delete: ");
+                if (int.TryParse(Console.ReadLine(), out var did))
+                    Console.WriteLine(employees.Delete(did) ? "Deleted." : "Failed.");
+                break;
+            case "0": return;
+            default: Console.WriteLine("Invalid choice."); break;
+        }
+    }
+}
+
 void ReceiveStock()
 {
     Console.Write("Supplier Id: ");
@@ -348,4 +434,24 @@ void ReceiveStock()
         receipts.Add(receipt);
         Console.WriteLine($"Saved Receipt #{receipt.Id}");
     }
+}
+
+void Login()
+{
+    Console.Write("Username: ");
+    var username = Console.ReadLine() ?? "";
+    Console.Write("Password: ");
+    var password = Console.ReadLine() ?? "";
+
+    var user = employees.GetAll()
+        .FirstOrDefault(e => e.Username == username && e.Password == password);
+
+    if (user == null)
+    {
+        Console.WriteLine("❌ Invalid credentials");
+        return;
+    }
+
+    currentUser = user;
+    Console.WriteLine($"✅ Logged in as {currentUser.Username} ({currentUser.Role})");
 }

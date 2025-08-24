@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SuperShop.Domain.Domain
+namespace SuperShop.Domain.Interfaces
 {
-    public enum EmployeeRole
+    public enum Role
     {
-        Admin = 1,
-        Sales = 2,
-        Inventory = 3
+        Admin,
+        Sales,
+        Inventory
     }
 }

@@ -10,7 +10,8 @@ namespace SuperShop.Domain.Domain
     public class Employee : IEntity
     {
         public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public EmployeeRole Role { get; set; } = EmployeeRole.Sales;
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty; 
+        public Role Role { get; set; }
     }
 }
