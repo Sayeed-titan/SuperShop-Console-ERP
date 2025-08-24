@@ -20,6 +20,8 @@ var provider = services.BuildServiceProvider();
 var customers = provider.GetRequiredService<ICrudService<Customer>>();
 var products = provider.GetRequiredService<ICrudService<Product>>();
 var orders = provider.GetRequiredService<IOrderService>();
+var suppliers = provider.GetRequiredService<ICrudService<Supplier>>();
+var receipts = provider.GetRequiredService<ICrudService<StockReceipt>>();
 
 // Seed items 
 if (products.Count() == 0)
