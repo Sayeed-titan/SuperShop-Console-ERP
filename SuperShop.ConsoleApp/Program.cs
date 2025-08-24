@@ -237,7 +237,11 @@ void OrderMenu()
                 try
                 {
                     var newOrder = orders.CreateOrder(custId, orderItems);
-                    Console.WriteLine($"Created Order #{newOrder.Id}  Total: {newOrder.TotalAmount}");
+                    Console.Write("Print voucher? (Y/N): ");
+                    var print = Console.ReadLine();
+                    if (!string.IsNullOrWhiteSpace(print) && print.ToUpper() == "Y")
+                        PrintVoucher(newOrder);
+
                 }
                 catch (Exception ex)
                 {
@@ -527,3 +531,33 @@ void LowStockAlerts(int threshold = 10)
         Console.WriteLine($"{p.Id}. {p.Name} - Stock: {p.StockQuantity}");
 }
 
+void PrintVoucher(Order order)
+{
+    var customer = customers.GetById(order.CustomerId);
+
+    Console.WriteLine("===================================");
+    Console.WriteLine("       SUPER SHOP POS RECEIPT      ");
+    Console.WriteLine("===================================");
+    Console.WriteLine($"Order Id: {order.Id}");
+    Console.WriteLine($"Date: {order.OrderDate:u}");
+    Console.WriteLine($"Customer: {customer?.Name ?? "Guest"}");
+    Console.WriteLine("-----------------------------------");
+
+    Console.WriteLine("Item              Qty   Price   Subtotal");
+    Console.WriteLine("-----------------------------------");
+
+    foreach (var it in order.Items)
+    {
+        var name = it.ProductName.PadRight(16).Substring(0, Math.Min(16, it.ProductName.Length));
+        var qty = it.Quantity.ToString().PadLeft(3);
+        var price = it.UnitPrice.ToString("0.00").PadLeft(7);
+        var subtotal = it.Subtotal.ToString("0.00").PadLeft(8);
+        Console.WriteLine($"{name} {qty} {price} {subtotal}");
+    }
+
+    Console.WriteLine("-----------------------------------");
+    Console.WriteLine($"TOTAL: {order.TotalAmount,26:0.00}");
+    Console.WriteLine("-----------------------------------");
+    Console.WriteLine("        THANK YOU FOR SHOPPING      ");
+    Console.WriteLine("===================================");
+}
