@@ -45,6 +45,7 @@ void MainMenu()
         Console.WriteLine("1. Customers");
         Console.WriteLine("2. Products");
         Console.WriteLine("3. Orders");
+        Console.WriteLine("4. Suppliers & Restock");
         Console.WriteLine("0. Exit");
         Console.Write("Choose: ");
         var key = Console.ReadLine();
@@ -54,6 +55,7 @@ void MainMenu()
             case "1": CustomerMenu(); break;
             case "2": ProductMenu(); break;
             case "3": OrderMenu(); break;
+            case "4": SupplierMenu(); break;
             case "0": return;
             default: Console.WriteLine("Invalid choice."); break;
         }
@@ -234,4 +236,116 @@ void PrintOrder(Order o)
     foreach (var it in o.Items)
         Console.WriteLine($"  - {it.ProductName} x{it.Quantity} @ {it.UnitPrice} = {it.Subtotal}");
     Console.WriteLine($"  Total: {o.TotalAmount}");
+}
+
+void SupplierMenu()
+{
+    while (true)
+    {
+        Console.WriteLine("\n--- Suppliers ---");
+        Console.WriteLine("1. List Suppliers");
+        Console.WriteLine("2. Add Supplier");
+        Console.WriteLine("3. Update Supplier");
+        Console.WriteLine("4. Delete Supplier");
+        Console.WriteLine("5. Receive Stock");
+        Console.WriteLine("6. List Stock Receipts");
+        Console.WriteLine("0. Back");
+        Console.Write("Choose: ");
+        var key = Console.ReadLine();
+
+        switch (key)
+        {
+            case "1":
+                foreach (var s in suppliers.GetAll())
+                    Console.WriteLine($"{s.Id}. {s.Name} | {s.Contact}");
+                break;
+            case "2":
+                Console.Write("Name: "); var n = Console.ReadLine() ?? "";
+                Console.Write("Contact: "); var c = Console.ReadLine() ?? "";
+                var snew = suppliers.Add(new Supplier { Name = n, Contact = c });
+                Console.WriteLine($"Added Supplier #{snew.Id}");
+                break;
+            case "3":
+                Console.Write("Id to update: ");
+                if (int.TryParse(Console.ReadLine(), out var uid))
+                {
+                    var s = suppliers.GetById(uid);
+                    if (s is null) { Console.WriteLine("Not found."); break; }
+                    Console.Write($"Name ({s.Name}): "); var n2 = Console.ReadLine();
+                    Console.Write($"Contact ({s.Contact}): "); var c2 = Console.ReadLine();
+                    if (!string.IsNullOrWhiteSpace(n2)) s.Name = n2;
+                    if (!string.IsNullOrWhiteSpace(c2)) s.Contact = c2;
+                    Console.WriteLine(suppliers.Update(s) ? "Updated." : "Failed.");
+                }
+                break;
+            case "4":
+                Console.Write("Id to delete: ");
+                if (int.TryParse(Console.ReadLine(), out var did))
+                    Console.WriteLine(suppliers.Delete(did) ? "Deleted." : "Failed.");
+                break;
+            case "5": ReceiveStock(); break;
+            case "6":
+                foreach (var r in receipts.GetAll())
+                {
+                    Console.WriteLine($"\nReceipt #{r.Id} | Supplier {r.SupplierId} | Date {r.Date:u}");
+                    foreach (var item in r.Items)
+                        Console.WriteLine($" - {item.ProductName} x{item.Quantity}");
+                }
+                break;
+            case "0": return;
+        }
+    }
+}
+
+void ReceiveStock()
+{
+    Console.Write("Supplier Id: ");
+    if (!int.TryParse(Console.ReadLine(), out var sid))
+    {
+        Console.WriteLine("Invalid Supplier Id.");
+        return;
+    }
+
+    var supplier = suppliers.GetById(sid);
+    if (supplier is null) { Console.WriteLine("Supplier not found."); return; }
+
+    var receipt = new StockReceipt { SupplierId = sid };
+    var prodList = products.GetAll().ToDictionary(p => p.Id);
+
+    while (true)
+    {
+        Console.Write("Product Id (blank to finish): ");
+        var ps = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(ps)) break;
+        if (!int.TryParse(ps, out var pid) || !prodList.TryGetValue(pid, out var prod))
+        {
+            Console.WriteLine("Invalid Product.");
+            continue;
+        }
+
+        Console.Write("Quantity: ");
+        if (!int.TryParse(Console.ReadLine(), out var qty) || qty <= 0)
+        {
+            Console.WriteLine("Invalid quantity.");
+            continue;
+        }
+
+        prod.StockQuantity += qty;
+        products.Update(prod);
+
+        receipt.Items.Add(new StockReceiptItem
+        {
+            ProductId = prod.Id,
+            ProductName = prod.Name,
+            Quantity = qty
+        });
+
+        Console.WriteLine($"Restocked {qty} of {prod.Name}. New Stock: {prod.StockQuantity}");
+    }
+
+    if (receipt.Items.Count > 0)
+    {
+        receipts.Add(receipt);
+        Console.WriteLine($"Saved Receipt #{receipt.Id}");
+    }
 }
